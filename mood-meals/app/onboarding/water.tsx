@@ -1,0 +1,143 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+import { Ionicons, Entypo } from '@expo/vector-icons';
+
+interface Props {
+  onNext: () => void;
+  onBack: () => void;
+}
+
+export default function WaterScreen({ onNext, onBack }: Props) {
+  const [glasses, setGlasses] = useState(10);
+
+  const increment = () => {
+    if (glasses < 20) setGlasses((prev) => prev + 1);
+  };
+
+  const decrement = () => {
+    if (glasses > 1) setGlasses((prev) => prev - 1);
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Progress bar */}
+      <View style={styles.progressBar}>
+        <View style={styles.progressDot} />
+        <View style={styles.progressDot} />
+        <View style={styles.progressDot} />
+        <View style={styles.progressDot} />
+        <View style={styles.progressDot} />
+        <View style={styles.progressDot} />
+      </View>
+
+      <Text style={styles.title}>What’s your water{'\n'}intake goal?</Text>
+
+      <View style={styles.counterContainer}>
+        <View style={styles.glassDisplay}>
+          <Text style={styles.glassText}>{glasses} glasses</Text>
+        </View>
+
+        <View style={styles.arrows}>
+          <TouchableOpacity onPress={increment} style={styles.arrowButton}>
+            <Entypo name="chevron-up" size={24} color="#888" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={decrement} style={styles.arrowButton}>
+            <Entypo name="chevron-down" size={24} color="#888" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.navContainer}>
+        <TouchableOpacity style={styles.navButtonBack} onPress={onBack}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButtonNext} onPress={onNext}>
+          <Ionicons name="arrow-forward" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF4E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  progressBar: {
+    flexDirection: 'row',
+    gap: 8,
+    position: 'absolute',
+    top: 60,
+  },
+  progressDot: {
+    width: 40,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#A49A9A',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#3C2A3E',
+    textAlign: 'center',
+    marginBottom: 48,
+  },
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  glassDisplay: {
+    backgroundColor: '#A5B4CB',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  glassText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  arrows: {
+    justifyContent: 'center',
+    gap: 8,
+  },
+  arrowButton: {
+    backgroundColor: '#DDD5D5',
+    padding: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  navContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 12,
+    marginTop: 60,
+  },
+  navButtonBack: {
+    backgroundColor: '#FDBE9C',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navButtonNext: {
+    backgroundColor: '#43274F',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

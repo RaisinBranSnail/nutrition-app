@@ -9,6 +9,8 @@ import HeightScreen from './height';
 import IdealWeightScreen from './idealWeight';
 import NameScreen from './name';
 import WeightScreen from './weight';
+import DietScreen from './diet';
+import WaterScreen from './water';
 
 interface OnboardingScreenProps {
   onNext: () => void;
@@ -27,6 +29,8 @@ const ONBOARDING_SCREENS: {
   { id: 'weight', component: WeightScreen },
   { id: 'idealWeight', component: IdealWeightScreen },
   { id: 'active', component: ActiveScreen },
+  { id: 'diet', component: DietScreen },
+  { id: 'water', component: WaterScreen },
 ];
 
 export default function OnboardingLayout() {
