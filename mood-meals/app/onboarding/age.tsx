@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useOnboardingData } from '@/hooks/useOnboardingData';
+
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -17,9 +19,11 @@ interface Props {
 
 export default function AgeScreen({ onNext, onBack }: Props) {
   const [age, setAge] = useState('');
+  const { updateData } = useOnboardingData();
 
   const handleNext = () => {
     if (!age) return;
+    updateData({ age: age });
     onNext();
   };
 

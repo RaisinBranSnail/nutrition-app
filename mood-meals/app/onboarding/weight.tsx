@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import { useOnboardingData } from '@/hooks/useOnboardingData';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,7 @@ interface Props {
 export default function WeightScreen({ onNext, onBack }: Props) {
   const [unit, setUnit] = useState<'kg' | 'lbs'>('lbs');
   const [weight, setWeight] = useState(unit === 'lbs' ? 150 : 68);
+  const { updateData } = useOnboardingData(); // ✅ correct placement
 
   const min = unit === 'lbs' ? 70 : 30;
   const max = unit === 'lbs' ? 300 : 140;
@@ -33,7 +34,11 @@ export default function WeightScreen({ onNext, onBack }: Props) {
   };
 
   const handleNext = () => {
-    // save weight here later
+    const kg = unit === 'kg' ? weight : Math.round(weight / 2.205);
+    updateData({
+      weight: kg,
+      preferred_unit: unit,
+    });
     onNext();
   };
 
@@ -90,22 +95,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF4E9',
     padding: 24,
     justifyContent: 'center',
-  },
-  progressBar: {
-    flexDirection: 'row',
-    gap: 8,
-    position: 'absolute',
-    top: 60,
-    alignSelf: 'center',
-  },
-  progressDot: {
-    width: 40,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#A49A9A',
-  },
-  inactiveDot: {
-    backgroundColor: '#DDD5D5',
   },
   title: {
     fontSize: 24,

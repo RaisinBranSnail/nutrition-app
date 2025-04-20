@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useOnboardingData } from '@/hooks/useOnboardingData';
+
 import {
   View,
   Text,
@@ -22,6 +24,7 @@ export default function IdealWeightScreen({ onNext, onBack }: Props) {
   const max = unit === 'lbs' ? 300 : 140;
 
   const displayWeight = `${weight}${unit}`;
+  const { updateData } = useOnboardingData();
 
   const handleUnitSwitch = (newUnit: 'kg' | 'lbs') => {
     const conversion = unit === 'lbs'
@@ -33,6 +36,11 @@ export default function IdealWeightScreen({ onNext, onBack }: Props) {
   };
 
   const handleNext = () => {
+    const kg = unit === 'kg' ? weight : Math.round(weight / 2.205);
+    updateData({
+      ideal_weight_l: kg,
+      preferred_unit: unit,
+    });
     onNext();
   };
 

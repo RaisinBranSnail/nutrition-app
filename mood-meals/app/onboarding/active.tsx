@@ -1,5 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
+import { useUser } from '@supabase/auth-helpers-react'; // or however you get user
+import { useOnboardingData } from '@/hooks/useOnboardingData';
+
 import {
     Image,
     ScrollView,
@@ -18,9 +21,11 @@ type ActivityLevel = 'low' | 'moderate' | 'high';
 
 export default function ActiveScreen({ onNext, onBack }: Props) {
   const [selectedLevel, setSelectedLevel] = useState<ActivityLevel | null>(null);
+  const { updateData } = useOnboardingData();
 
   const handleNext = () => {
     if (selectedLevel) {
+      updateData({ active: selectedLevel }); // ✅ add this
       // save stuff to db here
       onNext();
     }
