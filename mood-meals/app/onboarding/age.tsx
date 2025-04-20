@@ -1,6 +1,5 @@
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { useOnboardingData } from '@/hooks/useOnboardingData';
-
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -19,12 +18,37 @@ interface Props {
 
 export default function AgeScreen({ onNext, onBack }: Props) {
   const [age, setAge] = useState('');
-  const { updateData } = useOnboardingData();
+  const [loading, setLoading] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!age) return;
-    updateData({ age: age });
-    onNext();
+    setLoading(true);
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('❌ User not authenticated:', authError);
+      setLoading(false);
+      return;
+    }
+
+    // 💾 Save age to Supabase
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ age: Number(age) })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('❌ Error saving age to Supabase:', error);
+    } else {
+      console.log('✅ Age saved to Supabase');
+      onNext();
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -43,7 +67,6 @@ export default function AgeScreen({ onNext, onBack }: Props) {
         keyboardType="numeric"
       />
 
-      {/* Navigation buttons container */}
       <View style={styles.navContainer}>
         <TouchableOpacity style={styles.navButtonBack} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -55,7 +78,7 @@ export default function AgeScreen({ onNext, onBack }: Props) {
             { backgroundColor: age ? '#43274F' : '#B9AFAF' },
           ]}
           onPress={handleNext}
-          disabled={!age}
+          disabled={!age || loading}
         >
           <Ionicons name="arrow-forward" size={24} color="white" />
         </TouchableOpacity>
@@ -63,6 +86,7 @@ export default function AgeScreen({ onNext, onBack }: Props) {
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

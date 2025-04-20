@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabase';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -5,17 +6,42 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 type GenderOption = 'female' | 'male' | 'other';
 
 interface Props {
-    onNext: () => void;
-    onBack: () => void;
-}  
+  onNext: () => void;
+  onBack: () => void;
+}
 
-export default function GenderScreen({ onNext, onBack }:Props) {
+export default function GenderScreen({ onNext, onBack }: Props) {
   const [selectedGender, setSelectedGender] = useState<GenderOption | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleNext = () => {
-    if (selectedGender) {
+  const handleNext = async () => {
+    if (!selectedGender) return;
+    setLoading(true);
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('❌ User not authenticated:', authError);
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ gender: selectedGender })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('❌ Error saving gender to Supabase:', error);
+    } else {
+      console.log('✅ Gender saved to Supabase');
       onNext();
     }
+
+    setLoading(false);
   };
 
   const genderOptions: {
@@ -37,10 +63,7 @@ export default function GenderScreen({ onNext, onBack }:Props) {
         {genderOptions.map(({ value, label, icon, color }) => (
           <TouchableOpacity
             key={value}
-            style={[
-              styles.option,
-              selectedGender === value && styles.selectedOption,
-            ]}
+            style={[styles.option, selectedGender === value && styles.selectedOption]}
             onPress={() => setSelectedGender(value)}
           >
             <Text style={styles.optionLabel}>{label}</Text>
@@ -58,7 +81,7 @@ export default function GenderScreen({ onNext, onBack }:Props) {
             styles.navButtonNext,
             { backgroundColor: selectedGender ? '#43274F' : '#B9AFAF' },
           ]}
-          disabled={!selectedGender}
+          disabled={!selectedGender || loading}
           onPress={handleNext}
         >
           <Ionicons name="arrow-forward" size={24} color="#fff" />
@@ -67,6 +90,7 @@ export default function GenderScreen({ onNext, onBack }:Props) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

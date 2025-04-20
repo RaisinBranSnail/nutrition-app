@@ -1,33 +1,32 @@
-//EmailLoginScreen.tsx
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import { AntDesign, FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { supabase } from '@/supabase';
 import { EmailLoginStyles as styles } from './styles/EmailLoginStyles';
-import CongratsScreen from './CongratsScreen';
 
 const EmailLoginScreen = () => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showCongrats, setShowCongrats] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSignUp = async () => {
-    const { error } = await supabase.auth.signUp({ email, password });
+  const handleLogin = async () => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
     if (error) {
-      console.error('Sign up error:', error.message);
+      console.error('Login error:', error.message);
+      setErrorMsg('Invalid credentials. Please try again.');
     } else {
-      setShowCongrats(true);
+      console.log('Logged in successfully!');
+      router.replace('/home/main');
     }
   };
 
-  if (showCongrats) {
-    return <CongratsScreen onContinue={() => console.log('Continue tapped')} />;
-  }
-
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>Create Account</Text>
+      <Text style={styles.logo}>Login</Text>
       <Image
         source={require('@/assets/moodmeal-bowl.png')}
         style={styles.image}
@@ -55,8 +54,11 @@ const EmailLoginScreen = () => {
           onChangeText={setPassword}
         />
       </View>
-      <TouchableOpacity onPress={handleSignUp} style={styles.loginButton}>
-        <Text style={styles.loginButtonText}>Sign Up</Text>
+
+      {errorMsg !== '' && <Text style={{ color: 'red' }}>{errorMsg}</Text>}
+
+      <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
+        <Text style={styles.loginButtonText}>Log In</Text>
       </TouchableOpacity>
     </View>
   );

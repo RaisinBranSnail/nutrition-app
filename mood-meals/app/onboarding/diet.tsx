@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
@@ -17,11 +18,36 @@ type DietOption = 'clean' | 'mediterranean' | 'keto' | 'lowcarb';
 
 export default function DietScreen({ onNext, onBack }: Props) {
   const [selectedDiet, setSelectedDiet] = useState<DietOption | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleNext = () => {
-    if (selectedDiet) {
+  const handleNext = async () => {
+    if (!selectedDiet) return;
+    setLoading(true);
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('❌ Auth error saving diet:', authError);
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ diet_type: selectedDiet })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('❌ Supabase error saving diet:', error);
+    } else {
+      console.log('✅ Diet saved to Supabase');
       onNext();
     }
+
+    setLoading(false);
   };
 
   const diets = [
@@ -83,7 +109,7 @@ export default function DietScreen({ onNext, onBack }: Props) {
             { backgroundColor: selectedDiet ? '#43274F' : '#B9AFAF' },
           ]}
           onPress={handleNext}
-          disabled={!selectedDiet}
+          disabled={!selectedDiet || loading}
         >
           <Ionicons name="arrow-forward" size={24} color="#fff" />
         </TouchableOpacity>
@@ -97,21 +123,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF4E9',
     padding: 24,
     paddingBottom: 60,
-  },
-  progressBar: {
-    flexDirection: 'row',
-    gap: 8,
-    alignSelf: 'center',
-    marginBottom: 24,
-  },
-  progressDot: {
-    width: 40,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#A49A9A',
-  },
-  inactiveDot: {
-    backgroundColor: '#DDD5D5',
   },
   title: {
     fontSize: 24,

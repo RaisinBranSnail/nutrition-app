@@ -1,16 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { useUser } from '@supabase/auth-helpers-react'; // or however you get user
-import { useOnboardingData } from '@/hooks/useOnboardingData';
-
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { supabase } from '@/lib/supabase';
 
 interface Props {
   onNext: () => void;
@@ -21,14 +19,36 @@ type ActivityLevel = 'low' | 'moderate' | 'high';
 
 export default function ActiveScreen({ onNext, onBack }: Props) {
   const [selectedLevel, setSelectedLevel] = useState<ActivityLevel | null>(null);
-  const { updateData } = useOnboardingData();
+  const [loading, setLoading] = useState(false);
 
-  const handleNext = () => {
-    if (selectedLevel) {
-      updateData({ active: selectedLevel }); // ✅ add this
-      // save stuff to db here
+  const handleNext = async () => {
+    if (!selectedLevel) return;
+    setLoading(true);
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('❌ Auth error while saving activity level:', authError);
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ activity_level: selectedLevel })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('❌ Supabase error saving activity level:', error);
+    } else {
+      console.log('✅ Activity level saved to Supabase');
       onNext();
     }
+
+    setLoading(false);
   };
 
   const options = [
@@ -61,23 +81,22 @@ export default function ActiveScreen({ onNext, onBack }: Props) {
 
       {options.map((opt) => (
         <TouchableOpacity
-            key={opt.value}
-            style={[
-                styles.card,
-                selectedLevel === opt.value && styles.selectedCard,
-            ]}
-            onPress={() => setSelectedLevel(opt.value)}
-            >
-            <View style={styles.cardContent}>
-                <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>{opt.title}</Text>
-                <Text style={styles.cardDesc}>{opt.description}</Text>
-                <Text style={styles.cardExample}>{opt.example}</Text>
-                </View>
-                <Image source={opt.image} style={styles.cardImage} />
+          key={opt.value}
+          style={[
+            styles.card,
+            selectedLevel === opt.value && styles.selectedCard,
+          ]}
+          onPress={() => setSelectedLevel(opt.value)}
+        >
+          <View style={styles.cardContent}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{opt.title}</Text>
+              <Text style={styles.cardDesc}>{opt.description}</Text>
+              <Text style={styles.cardExample}>{opt.example}</Text>
             </View>
-            </TouchableOpacity>
-
+            <Image source={opt.image} style={styles.cardImage} />
+          </View>
+        </TouchableOpacity>
       ))}
 
       <View style={styles.navContainer}>
@@ -89,7 +108,7 @@ export default function ActiveScreen({ onNext, onBack }: Props) {
             styles.navButtonNext,
             { backgroundColor: selectedLevel ? '#43274F' : '#B9AFAF' },
           ]}
-          disabled={!selectedLevel}
+          disabled={!selectedLevel || loading}
           onPress={handleNext}
         >
           <Ionicons name="arrow-forward" size={24} color="#fff" />
@@ -104,21 +123,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF4E9',
     padding: 24,
     paddingBottom: 60,
-  },
-  progressBar: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 24,
-    alignSelf: 'center',
-  },
-  progressDot: {
-    width: 40,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#A49A9A',
-  },
-  inactiveDot: {
-    backgroundColor: '#DDD5D5',
   },
   title: {
     fontSize: 24,
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginLeft: 12,
     alignSelf: 'flex-start',
-  },  
+  },
   navContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -181,7 +185,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   navButtonNext: {
-    backgroundColor: '#43274F',
     borderRadius: 25,
     width: 50,
     height: 50,

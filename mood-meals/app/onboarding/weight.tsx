@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useOnboardingData } from '@/hooks/useOnboardingData';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
-import Slider from '@react-native-community/slider';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import Slider from '@react-native-community/slider';
+import React, { useState } from 'react';
+import {
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 interface Props {
   onNext: () => void;
@@ -17,29 +17,51 @@ interface Props {
 export default function WeightScreen({ onNext, onBack }: Props) {
   const [unit, setUnit] = useState<'kg' | 'lbs'>('lbs');
   const [weight, setWeight] = useState(unit === 'lbs' ? 150 : 68);
-  const { updateData } = useOnboardingData(); // ✅ correct placement
+  const [loading, setLoading] = useState(false);
 
   const min = unit === 'lbs' ? 70 : 30;
   const max = unit === 'lbs' ? 300 : 140;
-
   const displayWeight = `${weight}${unit}`;
 
   const handleUnitSwitch = (newUnit: 'kg' | 'lbs') => {
-    const conversion = unit === 'lbs'
+    if (newUnit === unit) return;
+
+    const converted = unit === 'lbs'
       ? weight / 2.205
       : weight * 2.205;
 
     setUnit(newUnit);
-    setWeight(Math.round(conversion));
+    setWeight(Math.round(converted));
   };
 
-  const handleNext = () => {
-    const kg = unit === 'kg' ? weight : Math.round(weight / 2.205);
-    updateData({
-      weight: kg,
-      preferred_unit: unit,
-    });
-    onNext();
+  const handleNext = async () => {
+    setLoading(true);
+    const weightKg = unit === 'kg' ? weight : Math.round(weight / 2.205);
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('❌ User not authenticated:', authError);
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ weight: weightKg })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('❌ Error saving weight to Supabase:', error);
+    } else {
+      console.log('✅ Weight saved to Supabase');
+      onNext();
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -81,7 +103,11 @@ export default function WeightScreen({ onNext, onBack }: Props) {
         <TouchableOpacity style={styles.navButtonBack} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navButtonNext} onPress={handleNext}>
+        <TouchableOpacity
+          style={styles.navButtonNext}
+          onPress={handleNext}
+          disabled={loading}
+        >
           <Ionicons name="arrow-forward" size={24} color="#fff" />
         </TouchableOpacity>
       </View>

@@ -1,7 +1,9 @@
+import { supabase } from '@/lib/supabase';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,61 +11,138 @@ import {
   View,
 } from 'react-native';
 
-// DUMMY DATA
-const currentWeight = 146;
-const goalWeight = 135;
-const diet = 'Clean eating';
-const water = 10;
-const kcal = 1457;
-const intensity = 'Steady';
-
 export default function PredictionScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error('Error fetching user:', authError);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      setProfile(data);
+      setLoading(false);
+    };
+
+    fetchProfile();
+  }, []);
+
+  if (loading || !profile) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#43274F" />
+        <Text style={styles.loadingText}>Loading prediction...</Text>
+      </View>
+    );
+  }
+
+  const {
+    weight,
+    ideal_weight_kg,
+    gender,
+    diet_type = 'Clean eating',
+    water_goal = 8,
+    activity_level = 'moderate',
+  } = profile;
+  
+  const parsedWeight = typeof weight === 'number' ? weight : parseFloat(weight) || 0;
+  const parsedIdealWeight = typeof ideal_weight_kg === 'number' ? ideal_weight_kg : parseFloat(ideal_weight_kg) || 0;
+
+  const safeGender = typeof gender === 'string' && gender ? gender.toLowerCase() : 'female';
+  const rawGender = profile.gender;
+  const maintenanceCalories = safeGender === 'male' ? 2500 : 2000;
+  
+  if (!parsedWeight || !parsedIdealWeight) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>
+          Incomplete weight data. Please finish onboarding.
+        </Text>
+      </View>
+    );
+  }
+
+  const weightToLose = parsedWeight - parsedIdealWeight;
+  const deficit = activity_level === 'high' ? 600 : activity_level === 'moderate' ? 500 : 300;
+  const dailyCalorieGoal = maintenanceCalories - deficit;
+  const caloriesToLose = weightToLose > 0 ? weightToLose * 3500 : 0;
+  const estimatedWeeks = weightToLose > 0 && deficit > 0
+    ? Math.ceil(caloriesToLose / (deficit * 7))
+    : 2; // fallback to 2 weeks
 
   const handleFinish = () => {
-    console.log('Onboarding complete!');
+    console.log('🎉 Onboarding complete!');
+    router.push('../home/main');
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.container}>
         <Text style={styles.header}>
-          You’ll reach your goal in about <Text style={styles.highlight}>11 weeks</Text>
+          You’ll reach your goal in about{' '}
+          <Text style={styles.highlight}>
+            {`${estimatedWeeks} week${estimatedWeeks > 1 ? 's' : ''}`}
+          </Text>
         </Text>
 
         <Text style={styles.subheader}>
           Just 3 hours of exercise each week can get you to your goal
         </Text>
 
-        {/* Weight card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Lose 11 lb</Text>
-          <Text style={styles.cardText}>Starting from 146lb.</Text>
+          <Text style={styles.cardTitle}>
+            {weightToLose > 0
+              ? `Lose ${weightToLose} lb`
+              : weightToLose < 0
+              ? `Gain ${Math.abs(weightToLose)} lb`
+              : 'Maintain weight'}
+          </Text>
+          <Text style={styles.cardText}>Starting from {parsedWeight}lb.</Text>
           <View style={styles.divider} />
-          <Text style={styles.cardKcal}>1457 kcal</Text>
+          <Text style={styles.cardKcal}>
+            {dailyCalorieGoal > 0 ? `${dailyCalorieGoal} kcal` : '—'}
+          </Text>
           <Text style={styles.cardText}>Daily calorie intake.</Text>
           <FontAwesome5 name="fire" size={24} color="#43274F" style={styles.cardIcon} />
         </View>
 
-        {/* Lifestyle summary */}
         <View style={styles.summaryCard}>
           <Text style={styles.summaryItem}>
-            Your diet: <Text style={styles.bold}>Clean eating</Text>
+            Your diet: <Text style={styles.bold}>{diet_type}</Text>
           </Text>
           <View style={styles.divider} />
 
           <Text style={styles.summaryItem}>
-            Intensity: <Text style={styles.bold}>Steady</Text>
-            {'\n'}<Text style={styles.small}>11 weeks</Text>
+            Activity intensity: <Text style={styles.bold}>{activity_level}</Text>
+            {'\n'}
+            <Text style={styles.small}>{estimatedWeeks} weeks</Text>
           </Text>
           <View style={styles.divider} />
 
           <Text style={styles.summaryItem}>
-            Water intake: <Text style={styles.bold}>10 glasses</Text>
+            Water intake: <Text style={styles.bold}>{water_goal} glasses</Text>
           </Text>
         </View>
 
-        {/* Button */}
         <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
           <Ionicons name="checkmark" size={20} color="#fff" />
           <Text style={styles.finishText}>Start Now!</Text>
@@ -170,5 +249,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF4E9',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#43274F',
+    fontWeight: '600',
   },
 });

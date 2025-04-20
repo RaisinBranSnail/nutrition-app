@@ -1,15 +1,14 @@
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity
 } from 'react-native';
-import ProgressDots from '@/components/ProgressDots';
 
 interface Props {
   onNext: () => void;
@@ -18,11 +17,39 @@ interface Props {
 
 export default function NameScreen({ onNext }: Props) {
   const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!name) return;
-    // place to save name if using db later
-    onNext();
+
+    setLoading(true);
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('❌ User not authenticated', authError);
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.from('user_profiles').insert([
+      {
+        user_id: user.id,
+        name: name,
+      },
+    ]);
+
+    if (error) {
+      console.error('❌ Error saving name to Supabase:', error);
+    } else {
+      console.log('✅ Name saved to Supabase');
+      onNext();
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -46,7 +73,7 @@ export default function NameScreen({ onNext }: Props) {
           { backgroundColor: name ? '#43274F' : '#B9AFAF' },
         ]}
         onPress={handleNext}
-        disabled={!name}
+        disabled={!name || loading}
       >
         <Ionicons name="arrow-forward" size={24} color="white" />
       </TouchableOpacity>
@@ -63,26 +90,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 40,
   },
-  progressBar: {
-    flexDirection: 'row',
-    gap: 8,
-    position: 'absolute',
-    top: 60,
-  },
-  progressDot: {
-    width: 40,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#A49A9A',
-  },
-  inactiveDot: {
-    backgroundColor: '#DDD5D5',
-  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 32,
     color: '#3C2A3E',
+    textAlign: 'center',
   },
   input: {
     width: '100%',

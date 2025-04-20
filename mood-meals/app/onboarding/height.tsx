@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import React, { useState } from 'react';
@@ -5,7 +6,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from 'react-native';
 
 interface Props {
@@ -17,6 +18,7 @@ export default function HeightScreen({ onNext, onBack }: Props) {
   const [unit, setUnit] = useState<'ft' | 'cm'>('ft');
   const [heightCm, setHeightCm] = useState(160);
   const [heightInches, setHeightInches] = useState(63);
+  const [loading, setLoading] = useState(false);
 
   const handleUnitSwitch = (newUnit: 'ft' | 'cm') => {
     if (newUnit === unit) return;
@@ -42,16 +44,41 @@ export default function HeightScreen({ onNext, onBack }: Props) {
     }
   };
 
-  const handleNext = () => {
-    onNext();
+  const handleNext = async () => {
+    setLoading(true);
+
+    const heightToSave = unit === 'cm' ? heightCm : Math.round(heightInches * 2.54);
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('❌ User not authenticated:', authError);
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ height: heightToSave })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('❌ Error saving height to Supabase:', error);
+    } else {
+      console.log('✅ Height saved to Supabase');
+      onNext();
+    }
+
+    setLoading(false);
   };
 
   return (
     <View style={styles.container}>
-      {/* Progress bar */}
       <Text style={styles.title}>How tall are you?</Text>
 
-      {/* Unit toggle */}
       <View style={styles.unitToggle}>
         <TouchableOpacity
           style={[styles.unitOption, unit === 'cm' && styles.activeUnit]}
@@ -71,7 +98,6 @@ export default function HeightScreen({ onNext, onBack }: Props) {
         </TouchableOpacity>
       </View>
 
-      {/* Slider */}
       <Slider
         style={styles.slider}
         minimumValue={unit === 'cm' ? 120 : 48}
@@ -86,23 +112,26 @@ export default function HeightScreen({ onNext, onBack }: Props) {
         thumbTintColor="#43274F"
       />
 
-      {/* Display */}
       <View style={styles.displayBox}>
         <Text style={styles.displayText}>{renderFormattedHeight()}</Text>
       </View>
 
-      {/* Nav buttons */}
       <View style={styles.navContainer}>
         <TouchableOpacity style={styles.navButtonBack} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navButtonNext} onPress={handleNext}>
+        <TouchableOpacity
+          style={styles.navButtonNext}
+          onPress={handleNext}
+          disabled={loading}
+        >
           <Ionicons name="arrow-forward" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
