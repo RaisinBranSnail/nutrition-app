@@ -30,7 +30,7 @@ export default function WaterScreen({ onNext, onBack }: Props) {
   const handleSubmit = () => {
     setIsCalculating(true);
     setTimeout(() => {
-      router.push('/onboarding/prediction');
+        router.push('/prediction');
     }, 5000);
   };
 
