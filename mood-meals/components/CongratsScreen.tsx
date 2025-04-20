@@ -1,8 +1,11 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router'; // ✅ Add this
 import { CongratsScreenStyles as styles } from './styles/CongratsScreenStyles';
 
-const CongratsScreen = ({ onContinue }: { onContinue: () => void }) => {
+const CongratsScreen = () => {
+  const router = useRouter(); // ✅ Set up router
+
   return (
     <View style={styles.container}>
       <Image
@@ -16,7 +19,10 @@ const CongratsScreen = ({ onContinue }: { onContinue: () => void }) => {
         You are a new member of Moo’dMeal!
       </Text>
 
-      <TouchableOpacity style={styles.button} onPress={onContinue}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push('/onboarding/name')} // ✅ Navigate to name.tsx
+      >
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
     </View>
