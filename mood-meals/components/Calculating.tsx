@@ -14,7 +14,7 @@ export default function Calculating() {
     Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
-        duration: 1500,
+        duration: 4000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
