@@ -45,7 +45,7 @@ export default function IdealWeightScreen({ onNext, onBack }: Props) {
         <View style={[styles.progressDot, styles.inactiveDot]} />
       </View>
 
-      <Text style={styles.title}>What’s your ideal weigth?</Text>
+      <Text style={styles.title}>What’s your ideal weight?</Text>
 
       <View style={styles.unitToggle}>
         <TouchableOpacity

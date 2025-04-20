@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
   onBack: () => void;
 }
 
-export default function AgeScreen({ onNext }: Props) {
+export default function AgeScreen({ onNext, onBack }: Props) {
   const [age, setAge] = useState('');
 
   const handleNext = () => {
@@ -30,6 +30,7 @@ export default function AgeScreen({ onNext }: Props) {
     >
       <View style={styles.progressBar}>
         <View style={styles.progressDot} />
+        <View style={styles.progressDot} />
         <View style={[styles.progressDot, styles.inactiveDot]} />
       </View>
 
@@ -41,18 +42,26 @@ export default function AgeScreen({ onNext }: Props) {
         placeholderTextColor="#444"
         value={age}
         onChangeText={setAge}
+        keyboardType="numeric"
       />
 
-      <TouchableOpacity
-        style={[
-          styles.nextButton,
-          { backgroundColor: age ? '#43274F' : '#B9AFAF' },
-        ]}
-        onPress={handleNext}
-        disabled={!age}
-      >
-        <Ionicons name="arrow-forward" size={24} color="white" />
-      </TouchableOpacity>
+      {/* Navigation buttons container */}
+      <View style={styles.navContainer}>
+        <TouchableOpacity style={styles.navButtonBack} onPress={onBack}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.navButtonNext,
+            { backgroundColor: age ? '#43274F' : '#B9AFAF' },
+          ]}
+          onPress={handleNext}
+          disabled={!age}
+        >
+          <Ionicons name="arrow-forward" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -96,13 +105,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#000',
   },
-  nextButton: {
-    position: 'absolute',
-    bottom: 40,
-    right: 24,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  navContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 40,
+    paddingHorizontal: 12,
+  },
+  navButtonBack: {
+    backgroundColor: '#FDBE9C',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navButtonNext: {
+    borderRadius: 25,
+    width: 50,
+    height: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },

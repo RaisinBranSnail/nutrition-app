@@ -1,6 +1,7 @@
 import { useOnboarding } from '@/hooks/useOnboarding';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import ActiveScreen from './active';
 import AgeScreen from './age';
 import GenderScreen from './gender';
 import GoalScreen from './goal';
@@ -25,6 +26,7 @@ const ONBOARDING_SCREENS: {
   { id: 'height', component: HeightScreen },
   { id: 'weight', component: WeightScreen },
   { id: 'idealWeight', component: IdealWeightScreen },
+  { id: 'active', component: ActiveScreen },
 ];
 
 export default function OnboardingLayout() {
