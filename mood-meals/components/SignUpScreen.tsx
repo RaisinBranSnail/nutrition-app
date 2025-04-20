@@ -4,29 +4,33 @@ import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { supabase } from '@/supabase';
 import { EmailLoginStyles as styles } from './styles/EmailLoginStyles';
 
+import CongratsScreen from './CongratsScreen';
+
 const SignUpScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showCongrats, setShowCongrats] = useState(false);
 
   const handleSignUp = async () => {
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
       console.error('Sign up error:', error.message);
     } else {
-      console.log('Sign up successful');
-      // maybe redirect or show success msg
+      setShowCongrats(true);
     }
   };
+
+  if (showCongrats) {
+    return <CongratsScreen onContinue={() => console.log('User continues to app')} />;
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>Create Account</Text>
-
       <Image
         source={require('@/assets/moodmeal-bowl.png')}
         style={styles.image}
       />
-
       <View style={styles.inputContainer}>
         <AntDesign name="mail" size={20} color="#3B2D4D" style={styles.icon} />
         <TextInput
@@ -39,7 +43,6 @@ const SignUpScreen = () => {
           keyboardType="email-address"
         />
       </View>
-
       <View style={styles.inputContainer}>
         <FontAwesome name="key" size={20} color="#3B2D4D" style={styles.icon} />
         <TextInput
@@ -51,7 +54,6 @@ const SignUpScreen = () => {
           onChangeText={setPassword}
         />
       </View>
-
       <TouchableOpacity onPress={handleSignUp} style={styles.loginButton}>
         <Text style={styles.loginButtonText}>Sign Up</Text>
       </TouchableOpacity>

@@ -1,3 +1,5 @@
+//LoginScreenStyles.ts
+//leave comment above
 import { StyleSheet } from 'react-native';
 
 export const LoginScreenStyles = StyleSheet.create({
