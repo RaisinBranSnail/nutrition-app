@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import ProgressDots from '@/components/ProgressDots';
 
 interface Props {
   onNext: () => void;
@@ -29,11 +30,6 @@ export default function NameScreen({ onNext }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.progressBar}>
-        <View style={styles.progressDot} />
-        <View style={[styles.progressDot, styles.inactiveDot]} />
-      </View>
-
       <Text style={styles.title}>Let’s start with your name</Text>
 
       <TextInput

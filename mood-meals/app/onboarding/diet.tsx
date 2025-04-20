@@ -50,16 +50,6 @@ export default function DietScreen({ onNext, onBack }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Progress bar */}
-      <View style={styles.progressBar}>
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={[styles.progressDot, styles.inactiveDot]} />
-      </View>
-
       <Text style={styles.title}>Choose a diet</Text>
 
       {diets.map((diet) => (

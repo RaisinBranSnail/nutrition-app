@@ -28,12 +28,6 @@ export default function AgeScreen({ onNext, onBack }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.progressBar}>
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={[styles.progressDot, styles.inactiveDot]} />
-      </View>
-
       <Text style={styles.title}>How old are you?</Text>
 
       <TextInput

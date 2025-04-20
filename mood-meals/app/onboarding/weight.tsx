@@ -39,13 +39,6 @@ export default function WeightScreen({ onNext, onBack }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.progressBar}>
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={[styles.progressDot, styles.inactiveDot]} />
-      </View>
-
       <Text style={styles.title}>What’s your weight?</Text>
 
       <View style={styles.unitToggle}>

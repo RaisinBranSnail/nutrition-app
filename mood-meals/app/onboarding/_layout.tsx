@@ -1,16 +1,17 @@
+import ProgressDots from '@/components/ProgressDots';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import ActiveScreen from './active';
 import AgeScreen from './age';
+import DietScreen from './diet';
 import GenderScreen from './gender';
 import GoalScreen from './goal';
 import HeightScreen from './height';
 import IdealWeightScreen from './idealWeight';
 import NameScreen from './name';
-import WeightScreen from './weight';
-import DietScreen from './diet';
 import WaterScreen from './water';
+import WeightScreen from './weight';
 
 interface OnboardingScreenProps {
   onNext: () => void;
@@ -59,13 +60,19 @@ export default function OnboardingLayout() {
 
   return (
     <View style={styles.container}>
+      <ProgressDots
+        currentIndex={currentScreenIndex}
+        total={ONBOARDING_SCREENS.length}
+      />
       <CurrentScreen onNext={handleNext} onBack={handleBack} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+    container: {
+      flex: 1,
+      backgroundColor: '#FFF4E9',
+      paddingHorizontal: 24,
+    },
+  });

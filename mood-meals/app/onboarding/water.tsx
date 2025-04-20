@@ -26,15 +26,6 @@ export default function WaterScreen({ onNext, onBack }: Props) {
   return (
     <View style={styles.container}>
       {/* Progress bar */}
-      <View style={styles.progressBar}>
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-      </View>
-
       <Text style={styles.title}>What’s your water{'\n'}intake goal?</Text>
 
       <View style={styles.counterContainer}>
